@@ -3,19 +3,27 @@ import prisma from "../config/prisma.config.js";
 //Create a User
 export const addUser = async (req, res) => {
     try {
-        const { email, name } = req.body
+        const { email, name, age } = req.body
         const user = await prisma.user.create({
             data: {
                 email,
-                name
+                name,
+                age,
+                userPreference: {
+                    create: {
+                        emailUpdates: true
+                    }
+                }
             }
+
+
         })
         res
             .status(201)
-            .json({ status: "success", results: user.length, data: user });
+            .json({ status: "success", data: user });
 
     } catch (error) {
-        res.status(400).json({ status: "success", message: error.message });
+        res.status(400).json({ status: "Failed", message: error.message });
     }
 
 }
