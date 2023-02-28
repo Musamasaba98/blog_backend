@@ -1,33 +1,30 @@
 import prisma from "../config/prisma.config.js";
+import tryToCatch from "../utils/tryToCatch.js";
 
 
 //Create a User
-export const addUser = async (req, res) => {
-    try {
-        const { email, name, age } = req.body
-        const user = await prisma.user.create({
-            data: {
-                email,
-                name,
-                age,
-                userPreference: {
-                    create: {
-                        emailUpdates: true
-                    }
+export const addUser = tryToCatch(async (req, res) => {
+    const { email, name, age } = req.body
+    const user = await prisma.user.create({
+        data: {
+            email,
+            name,
+            age,
+            userPreference: {
+                create: {
+                    emailUpdates: true
                 }
             }
+        }
 
 
-        })
-        res
-            .status(201)
-            .json({ status: "success", data: user });
+    })
 
-    } catch (error) {
-        res.status(400).json({ name: error.name, code: error.status, status: "Failed", message: error.message });
-    }
+    res
+        .status(201)
+        .json({ status: "success", data: user });
 
-}
+})
 
 //Find all Users
 export const findAllUsers = async (req, res) => {

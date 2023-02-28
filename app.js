@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: true, limit: "15kb" }));
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/posts", postRouter)
 app.use("/api/v1/categories", categoryRouter)
+app.use(errorHandler)
 app.all("*", (req, res, next) => next(new customError(`Cant find ${req.originalUrl}`, 404))
 );
-app.use(errorHandler)
 
 export default app;

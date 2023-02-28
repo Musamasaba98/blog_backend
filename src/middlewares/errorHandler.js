@@ -1,97 +1,86 @@
-// const AppError = require('../utils/appError');
 import CustomError from '../utils/customError.js'
+import { Prisma } from '@prisma/client';
 
 
-const errorHandler = (error, req, res, next) => {
-    return res.status(400).json({ status: "Failed", message: error.message })
-}
+const handlePrismaError = (err) => {
+    switch (err.code) {
+        case 'P2002':
+            // handling duplicate key errors
+            return new CustomError(`Duplicate field value: ${err.meta.target}`, 400);
+        case 'P2014':
+            // handling invalid id errors
+            return new CustomError(`Invalid ID: ${err.meta.target}`, 400);
+        case 'P2003':
+            // handling invalid data errors
+            return new CustomError(`Invalid input data: ${err.meta.target}`, 400);
+        default:
+            // handling all other errors
+            return new CustomError(`Something went wrong: ${err.message}`, 500);
+    }
+};
+
+const handleJWTError = () => new CustomError('Invalid token please login again', 400);
+
+const handleJWTExpiredError = () => new CustomError('Token has expired please login again', 400);
+
+const sendErrorDev = (err, req, res) => {
+    if (req.originalUrl.startsWith('/api')) {
+        res.status(err.statusCode).json({
+            status: err.status,
+            errors: err,
+            message: err.message,
+            stack: err.stack,
+        });
+    } else {
+        //rendered website
+        res.status(err.statusCode).render('error', { title: 'Something went wrong!', msg: err.message });
+    }
+};
+
+const sendErrorProd = (err, req, res) => {
 
 
-// const handleCastErrorDB = err => {
-//     //hanlding invalid db ids
-//     return new CustomError(`Invalid ${err.path} : ${err.value}`, 400);
-// };
-// const handleDuplicateErrorDB = err => {
-//     const value = err.errmsg.match(/(["'])(?:(?=(\\?))\2.)*?\1/)[0];
-//     //hanlding invalid db ids
-//     return new AppError(`duplicate feild value: ${value}`, 400); //400 bad request
-// };
+    if (req.originalUrl.startsWith('/api')) {
+        if (err.isOperational)
+            return res.status(err.status).json({ status: err.status, message: err.message });
 
-// const handleValidationErrorDB = err => {
-//     const errors = Object.values(err.errors).map(val => val.message);
-//     //handling invalid input data
-//     return new AppError(`invalid input data. ${errors.join('. ')}`, 400);
-// };
+        //programming errors dont leak details
+        console.error('ERROR 💥', err);
 
-// const handleJWTError = () =>
-//     new AppError('Invalid token please login again', 400);
+        return res.status(500).json({ status: ' error', message: 'Please try again later' });
+    }
 
-// const handleJWTExpiredError = () =>
-//     new AppError('Token has expired please login again', 400);
+    //for rendered website
+    if (err.isOperational)
+        return res.status(err.statusCode).json({
+            status: err.status,
+            message: err.message,
+        });
+    //programming errors should not leak details to client
 
-// const sendErrorDev = (err, req, res) => {
-//     if (req.originalUrl.startsWith('/api')) {
-//         res.status(err.statusCode).json({
-//             status: err.status,
-//             errors: err,
-//             message: err.message,
-//             stack: err.stack
-//         });
-//     } else {
-//         //rendered website
-//         res
-//             .status(err.statusCode)
-//             .render('error', { title: 'Something went wrong!', msg: err.message });
-//     }
-// };
+    return res.status(500).json({ status: ' error', message: 'Sommething went wrong' });
+};
 
-// const sendErrorProd = (err, req, res) => {
-//     if (req.originalUrl.startsWith('/api')) {
-//         if (err.isOperational)
-//             return res
-//                 .status(err.status)
-//                 .render('error', { title: 'Something went wrong!', msg: err.message });
+const errorHandler = (err, req, res, next) => {
 
-//         //programming errors dont leak details
-//         console.error('ERROR 💥', err);
+    err.statusCode = err.statusCode || 500; //default status code for an error
+    err.status = err.status || 'error'; //default status
+    if (process.env.NODE_ENV === 'development') {
+        sendErrorDev(err, req, res);
+    } else if (process.env.NODE_ENV === 'production') {
+        let error = { ...err };
+        error.message = err.message;
 
-//         return res
-//             .status(500)
-//             .json({ status: ' error', message: 'Please try again later' });
-//     }
-
-//     //for rendered website
-//     if (err.isOperational)
-//         return res.status(err.statusCode).json({
-//             status: err.status,
-//             message: err.message
-//         });
-//     //programming errors should not leak details to client
-
-//     return res
-//         .status(500)
-//         .json({ status: ' error', message: 'Sommething went wrong' });
-// };
-
-// module.exports = (err, req, res, next) => {
-//     err.statusCode = err.statusCode || 500; //default status code for an error
-//     err.status = err.status || 'error'; //default status
-
-//     if (process.env.NODE_ENV === 'development') {
-//         sendErrorDev(err, req, res);
-//     } else if (process.env.NODE_ENV === 'production') {
-//         let error = { ...err };
-//         error.message = err.message;
-
-//         if (error.name === 'CastError') error = handleCastErrorDB(error);
-//         if (error.code === 11000) error = handleDuplicateErrorDB(error);
-//         if (error.name === 'ValidationError')
-//             error = handleValidationErrorDB(error);
-//         if (error.name === 'JsonWebTokenError') error = handleJWTError();
-//         if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
-
-//         sendErrorProd(error, req, res);
-//     }
-// };
+        if (error instanceof Prisma.PrismaClientValidationError) {
+            console.log("handlePrismaError")
+            error = handlePrismaError(error);
+        } else if (error.name === 'JsonWebTokenError') {
+            error = handleJWTError();
+        } else if (error.name === 'TokenExpiredError') {
+            error = handleJWTExpiredError();
+        }
+        sendErrorProd(error, req, res);
+    }
+};
 
 export default errorHandler

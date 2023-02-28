@@ -7,7 +7,7 @@ const validateRequest = validation(true)
 const router = express.Router()
 
 router.route("/")
-    .post(validateRequest, tryToCatch(addUser))
+    .post(validateRequest, addUser)
     .get(tryToCatch(findAllUsers))
 router.route("/:id")
     .get(tryToCatch(findUser))
