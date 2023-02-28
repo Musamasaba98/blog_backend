@@ -3,8 +3,23 @@ import prisma from "../config/prisma.config.js";
 //Add a post
 export const addPost = async (req, res) => {
     try {
+        const { averageRating, title, content, authorEmail } = req.body
         const post = await prisma.post.create({
-            data: req.body
+            data: {
+                averageRating,
+                title,
+                content,
+                author: {
+                    connect: {
+                        email: authorEmail
+                    }
+                },
+                categories: {
+                    create: {
+                        name: "Love"
+                    }
+                }
+            }
         })
         res.status(201).json({ status: "success", data: post })
     } catch (error) {

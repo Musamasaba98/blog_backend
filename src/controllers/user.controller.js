@@ -1,5 +1,6 @@
 import prisma from "../config/prisma.config.js";
 
+
 //Create a User
 export const addUser = async (req, res) => {
     try {
