@@ -7,7 +7,7 @@
   "scripts": {
     "start": "NODE_ENV=production node server.js",
     "dev": "NODE_ENV=development nodemon server.js",
-    "start-prod":"NODE_ENV=production nodemon server.js"
+    "start-prod": "NODE_ENV=production nodemon server.js"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +17,7 @@
     "express": "^4.18.2",
     "gitignore": "^0.7.0",
     "joi": "^17.8.3",
+    "lodash": "^4.17.21",
     "prisma": "^4.10.1"
   },
   "devDependencies": {

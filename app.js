@@ -5,7 +5,9 @@ import categoryRouter from "./src/routes/category.route.js"
 import errorHandler from "./src/middlewares/errorHandler.js";
 import customError from "./src/utils/customError.js";
 
+
 const app = express();
+
 
 app.use("/static", express.static("./src/public"));
 app.use(express.json());

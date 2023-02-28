@@ -24,7 +24,7 @@ export const addUser = async (req, res) => {
             .json({ status: "success", data: user });
 
     } catch (error) {
-        res.status(400).json({ status: "Failed", message: error.message });
+        res.status(400).json({ name: error.name, code: error.status, status: "Failed", message: error.message });
     }
 
 }
