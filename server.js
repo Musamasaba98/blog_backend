@@ -5,8 +5,7 @@ import app from "./app.js";
 dotenv.config();
 
 
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 6000;
 process.on("uncaughtException", (err) => {
     console.log("Uncaught Exception: ", err.message);
     console.log("Closing server now...");

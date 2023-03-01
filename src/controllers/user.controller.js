@@ -1,15 +1,18 @@
 import prisma from "../config/prisma.config.js";
 import tryToCatch from "../utils/tryToCatch.js";
+import bcrypt from 'bcryptjs'
 
 
 //Create a User
 export const addUser = tryToCatch(async (req, res) => {
-    const { email, name, age } = req.body
+    const { email, name, password, age } = req.body
+    const hashedPassword = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
         data: {
             email,
             name,
             age,
+            password: hashedPassword,
             userPreference: {
                 create: {
                     emailUpdates: true

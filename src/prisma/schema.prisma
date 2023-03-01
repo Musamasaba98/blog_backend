@@ -15,6 +15,7 @@ model User {
   age              Int
   email            String          @unique
   name             String?
+  password         String
   role             Role            @default(BASIC)
   writtenPosts     Post[]          @relation("WrittenPosts")
   favouritedPosts  Post[]          @relation("FavouritePosts")

@@ -42,12 +42,12 @@ const sendErrorProd = (err, req, res) => {
 
     if (req.originalUrl.startsWith('/api')) {
         if (err.isOperational)
-            return res.status(err.status).json({ status: err.status, message: err.message });
+            return res.status(err.statusCode).json({ status: err.status, message: err.message });
 
         //programming errors dont leak details
         console.error('ERROR 💥', err);
 
-        return res.status(500).json({ status: ' error', message: 'Please try again later' });
+        return res.status(400).json({ status: ' error', message: 'Please try again later' });
     }
 
     //for rendered website
@@ -69,11 +69,12 @@ const errorHandler = (err, req, res, next) => {
         sendErrorDev(err, req, res);
     } else if (process.env.NODE_ENV === 'production') {
         let error = { ...err };
-        error.message = err.message;
 
-        if (error instanceof Prisma.PrismaClientValidationError) {
+        error.message = err.message;
+        if (err instanceof Prisma.PrismaClientKnownRequestError) {
             console.log("handlePrismaError")
-            error = handlePrismaError(error);
+            error = handlePrismaError(err);
+
         } else if (error.name === 'JsonWebTokenError') {
             error = handleJWTError();
         } else if (error.name === 'TokenExpiredError') {
