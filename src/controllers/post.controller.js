@@ -1,31 +1,28 @@
 import prisma from "../config/prisma.config.js";
+import tryToCatch from "../utils/tryToCatch.js";
 
 //Add a post
-export const addPost = async (req, res) => {
-    try {
-        const { averageRating, title, content, authorEmail } = req.body
-        const post = await prisma.post.create({
-            data: {
-                averageRating,
-                title,
-                content,
-                author: {
-                    connect: {
-                        email: authorEmail
-                    }
-                },
-                categories: {
-                    create: {
-                        name: "Love"
-                    }
+export const addPost = tryToCatch(async (req, res) => {
+    const { email } = req.user
+    const { averageRating, title, content, categories } = req.body
+    const post = await prisma.post.create({
+        data: {
+            averageRating,
+            title,
+            content,
+            author: {
+                connect: {
+                    email: email
                 }
+            },
+            categories: {
+                connect: categories.map(name => ({ name }))
             }
-        })
-        res.status(201).json({ status: "success", data: post })
-    } catch (error) {
-        res.status(400).json({ status: "Failed", message: error.message })
-    }
-}
+        }
+    })
+    res.status(201).json({ status: "success", data: post })
+
+})
 
 //Get all Posts
 export const getAllPosts = async (req, res) => {

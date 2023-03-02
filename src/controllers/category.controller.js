@@ -8,6 +8,7 @@ export const addCategory = async (req, res) => {
             data: {
                 name
             }
+
         })
         res.status(201).json({ status: "success", data: category })
     } catch (error) {
