@@ -5,6 +5,31 @@ import customError from "../utils/customError.js";
 import bcrypt from 'bcryptjs'
 import exclude from "../utils/prisma.exclude.js";
 
+//Create a User
+export const signup = tryToCatch(async (req, res) => {
+    const { email, name, password, age } = req.body
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const user = await prisma.user.create({
+        data: {
+            email,
+            name,
+            age,
+            password: hashedPassword,
+            userPreference: {
+                create: {
+                    emailUpdates: true
+                }
+            }
+        }
+
+
+    })
+
+    res
+        .status(201)
+        .json({ status: "success", data: user });
+
+})
 export const login = tryToCatch(async (req, res, next) => {
     const user = await prisma.user.findUnique({
         where: {
