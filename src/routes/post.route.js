@@ -1,17 +1,18 @@
 import express from "express"
-import { authenticateToken } from "../controllers/auth.controller.js";
+import { authenticateToken, restrictTo } from "../controllers/auth.controller.js";
 import { addPost, deletePost, getAllPosts, getPost, updatePost } from "../controllers/post.controller.js";
+import validation from "../middlewares/validation.middleware.js";
 
-
+const validateRequest = validation(true)
 const router = express.Router()
 
 router.route("/")
-    .post(authenticateToken, addPost)
+    .post(authenticateToken, restrictTo(["ADMIN", "EDITOR"]), validateRequest, addPost)
     .get(getAllPosts)
 router.route("/:id")
     .get(getPost)
-    .put(updatePost)
-    .delete(deletePost)
+    .put(authenticateToken, restrictTo(["ADMIN", "EDITOR"]), validateRequest, updatePost)
+    .delete(authenticateToken, restrictTo(["ADMIN", "EDITOR"]), validateRequest, deletePost)
 
 
 export default router;

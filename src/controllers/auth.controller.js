@@ -7,7 +7,7 @@ import exclude from "../utils/prisma.exclude.js";
 
 //Create a User
 export const signup = tryToCatch(async (req, res) => {
-    const { email, name, password, age } = req.body
+    const { email, name, password, age, role } = req.body
     const hashedPassword = await bcrypt.hash(password, 10)
     const user = await prisma.user.create({
         data: {
@@ -15,6 +15,7 @@ export const signup = tryToCatch(async (req, res) => {
             name,
             age,
             password: hashedPassword,
+            role,
             userPreference: {
                 create: {
                     emailUpdates: true
@@ -42,8 +43,8 @@ export const login = tryToCatch(async (req, res, next) => {
     } else {
         if (await bcrypt.compare(req.body.password, user.password)) {
             const userWithoutPassword = exclude(user, 'password')
-            const accessToken = jwt.sign(userWithoutPassword, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1m" })
-            const refreshT = jwt.sign(userWithoutPassword, process.env.REFRESH_TOKEN_SECRET)
+            const accessToken = jwt.sign(userWithoutPassword, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" })
+            const refreshT = jwt.sign(userWithoutPassword, process.env.REFRESH_TOKEN_SECRET, { expiresIn: "30d" })
             const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             const clientId = "myapp"
             const refreshToken = await prisma.refreshToken.create({
@@ -80,7 +81,7 @@ export const token = tryToCatch(async (req, res, next) => {
         return next(new customError("Invalid request", 401));
     }
 
-    const accessToken = jwt.sign(refreshTokenData.user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1m" });
+    const accessToken = jwt.sign(refreshTokenData.user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
     res.status(200).json({ accessToken });
 })
 export const authenticateToken = (req, res, next) => {
@@ -92,4 +93,13 @@ export const authenticateToken = (req, res, next) => {
         req.user = user
         next()
     })
+}
+
+export const restrictTo = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return next(new customError('You dont have permission to access this action', 403))
+        }
+        next()
+    }
 }

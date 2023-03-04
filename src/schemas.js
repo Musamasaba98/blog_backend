@@ -5,6 +5,12 @@ const user = Joi.object({
    email: Joi.string().email().lowercase().required(),
    age: Joi.number().integer().min(18),
    name: Joi.string().min(3).max(40).trim().required(),
+   password: Joi.string().min(7).required().strict(),
+   role: Joi.string().uppercase().trim()
+})
+//login schema
+const login = Joi.object({
+   email: Joi.string().email().lowercase().required(),
    password: Joi.string().min(7).required().strict()
 })
 //post schema
@@ -19,7 +25,8 @@ const category = Joi.object({
 })
 
 export default {
-   '/api/v1/user': user,
+   '/api/v1/user/signup': user,
+   '/api/v1/user/login': login,
    '/api/v1/posts': post,
    '/api/v1/category': category,
 }

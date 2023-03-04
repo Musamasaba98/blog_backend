@@ -17,13 +17,13 @@ export const addCategory = tryToCatch(async (req, res) => {
 })
 
 //Get all Posts
-export const getAllCategories = getAll(category)
+export const getAllCategories = getAll("category")
 
 //Get a post
-export const getCategory = getOne(category)
+export const getCategory = getOne("category")
 
 //Update a post
-export const updateCategory = updateOne(category)
+export const updateCategory = updateOne("category")
 
 //Delete a post
-export const deleteCategory = deleteOne(category)
+export const deleteCategory = deleteOne("category")

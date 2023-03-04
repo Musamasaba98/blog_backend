@@ -8,7 +8,7 @@ const validation = (useJoiError = false) => {
     //useJoiError determines if we should respond with the base Joi error
     const _useJoiError = _.isBoolean(useJoiError) && useJoiError;
     //enabled HTTP methods for request data validation
-    const _supportMethods = ["post", "put"]
+    const _supportMethods = ["post", "put", "delete"]
     //Joi validation options
     const _validationOptions = {
         abortEarly: false,

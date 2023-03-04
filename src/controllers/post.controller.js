@@ -27,13 +27,13 @@ export const addPost = tryToCatch(async (req, res) => {
 })
 
 //Get all Posts
-export const getAllPosts = getAll(post)
+export const getAllPosts = getAll("post")
 
 //Get a post
-export const getPost = getOne(post)
+export const getPost = getOne("post")
 
 //Update a post
-export const updatePost = updateOne(post)
+export const updatePost = updateOne("post")
 
 //Delete a post
-export const deletePost = deleteOne(post)
+export const deletePost = deleteOne("post")
