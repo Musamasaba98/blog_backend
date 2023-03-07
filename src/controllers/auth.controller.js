@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import customError from "../utils/customError.js";
 import bcrypt from 'bcryptjs'
 import exclude from "../utils/prisma.exclude.js";
+import { promisify } from 'util'
 
 //Create a User
 export const signup = tryToCatch(async (req, res) => {
@@ -90,17 +91,15 @@ export const authenticateToken = tryToCatch(async (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
     if (token == null) return next(new customError("You are not authorized to access this route", 401))
-    const user = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    if (!user) {
-        next(new customError("Invalid Token", 403))
-    }
+
+    const user = await promisify(jwt.verify)(token, process.env.ACCESS_TOKEN_SECRET)
     req.user = user
     next()
 })
 
 export const restrictTo = (roles) => ((req, res, next) => {
     if (!roles.includes(req.user.role)) {
-        return res.status(403).json({ status: 403, error: 'You dont have permission to access this action' })
+        return next(new customError("You don't have permission to access this action", 403))
     }
     // call next function to move on to the next middleware
     next()

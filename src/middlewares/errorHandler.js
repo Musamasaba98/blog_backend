@@ -24,6 +24,8 @@ const handleJWTError = () => new customError('Invalid token please login again',
 
 const handleJWTExpiredError = () => new customError('Token has expired please login again', 400);
 
+const handleUserPermissionError = () => new customError("You don't have permission to access this action", 403);
+
 const sendErrorDev = (err, req, res) => {
     if (req.originalUrl.startsWith('/api')) {
         res.status(err.statusCode).json({
@@ -63,20 +65,12 @@ const sendErrorProd = (err, req, res) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-
     err.statusCode = err.statusCode || 500; //default status code for an error
-    err.status = err.status || 'error'; //default status
+    err.status = err.status || 'Internal Server Error'; //default status
     if (process.env.NODE_ENV === 'development') {
-        console.log(err instanceof jwt.TokenExpiredError)
-        if (err instanceof jwt.TokenExpiredError) {
-            err = handleJWTError();
-        } else if (err.name === 'JsonWebTokenError') {
-            err = handleJWTExpiredError();
-        }
         sendErrorDev(err, req, res);
     } else if (process.env.NODE_ENV === 'production') {
         let error = { ...err };
-
         error.message = err.message;
         if (err instanceof Prisma.PrismaClientKnownRequestError) {
             console.log("handlePrismaError")
@@ -88,7 +82,10 @@ const errorHandler = (err, req, res, next) => {
         } else if (error.name === 'TokenExpiredError') {
 
             error = handleJWTExpiredError();
+        } else if (error.statusCode == 403 && err.message === "You don't have permission to access this action") {
+            error = handleUserPermissionError()
         }
+
         sendErrorProd(error, req, res);
     }
 };
