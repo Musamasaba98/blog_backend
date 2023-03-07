@@ -1,5 +1,6 @@
 import CustomError from '../utils/customError.js'
 import { Prisma } from '@prisma/client';
+import customError from '../utils/customError.js';
 
 
 const handlePrismaError = (err) => {
@@ -19,9 +20,9 @@ const handlePrismaError = (err) => {
     }
 };
 
-const handleJWTError = () => new CustomError('Invalid token please login again', 400);
+const handleJWTError = () => new customError('Invalid token please login again', 400);
 
-const handleJWTExpiredError = () => new CustomError('Token has expired please login again', 400);
+const handleJWTExpiredError = () => new customError('Token has expired please login again', 400);
 
 const sendErrorDev = (err, req, res) => {
     if (req.originalUrl.startsWith('/api')) {
@@ -66,6 +67,12 @@ const errorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500; //default status code for an error
     err.status = err.status || 'error'; //default status
     if (process.env.NODE_ENV === 'development') {
+        console.log(err instanceof jwt.TokenExpiredError)
+        if (err instanceof jwt.TokenExpiredError) {
+            err = handleJWTError();
+        } else if (err.name === 'JsonWebTokenError') {
+            err = handleJWTExpiredError();
+        }
         sendErrorDev(err, req, res);
     } else if (process.env.NODE_ENV === 'production') {
         let error = { ...err };
@@ -76,8 +83,10 @@ const errorHandler = (err, req, res, next) => {
             error = handlePrismaError(err);
 
         } else if (error.name === 'JsonWebTokenError') {
+
             error = handleJWTError();
         } else if (error.name === 'TokenExpiredError') {
+
             error = handleJWTExpiredError();
         }
         sendErrorProd(error, req, res);

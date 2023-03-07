@@ -12,7 +12,7 @@ process.on("uncaughtException", (err) => {
     process.exit(1);
 });
 
-app.listen(PORT, () => console.log(`The database has loaded on port ${PORT}`))
+const server = app.listen(PORT, () => console.log(`The database has loaded on port ${PORT}`))
 
 process.on("unhandledRejection", (err) => {
     console.log(err);

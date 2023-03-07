@@ -1,5 +1,4 @@
 import prisma from "../config/prisma.config.js";
-import customError from "../utils/customError.js";
 import tryToCatch from "../utils/tryToCatch.js";
 import { deleteOne, getAll, getOne, updateOne } from "./factory.controller.js";
 
@@ -22,8 +21,8 @@ export const addPost = tryToCatch(async (req, res) => {
             }
         }
     })
-    res.status(201).json({ status: "success", data: post })
 
+    res.status(201).json({ status: "success", data: post })
 })
 
 //Get all Posts

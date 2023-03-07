@@ -80,26 +80,28 @@ export const token = tryToCatch(async (req, res, next) => {
     if (!refreshTokenData) {
         return next(new customError("Invalid request", 401));
     }
-
+    if (!refreshTokenData.user) {
+        return next(new customError("Invalid user data", 400));
+    }
     const accessToken = jwt.sign(refreshTokenData.user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
     res.status(200).json({ accessToken });
 })
-export const authenticateToken = (req, res, next) => {
+export const authenticateToken = tryToCatch(async (req, res, next) => {
     const authHeader = req.headers['authorization']
     const token = authHeader && authHeader.split(' ')[1]
     if (token == null) return next(new customError("You are not authorized to access this route", 401))
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return next(new customError("Invalid Token", 403))
-        req.user = user
-        next()
-    })
-}
-
-export const restrictTo = (...roles) => {
-    return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
-            return next(new customError('You dont have permission to access this action', 403))
-        }
-        next()
+    const user = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    if (!user) {
+        next(new customError("Invalid Token", 403))
     }
-}
+    req.user = user
+    next()
+})
+
+export const restrictTo = (roles) => ((req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+        return res.status(403).json({ status: 403, error: 'You dont have permission to access this action' })
+    }
+    // call next function to move on to the next middleware
+    next()
+})

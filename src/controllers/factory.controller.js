@@ -33,7 +33,9 @@ export const updateOne = Modal => tryToCatch(async (req, res, next) => {
 export const getOne = (Modal) => tryToCatch(async (req, res, next) => {
 
     const item = await prisma[Modal].findUnique({
-        data: req.params.id
+        where: {
+            id: req.params.id
+        }
     })
     if (!item) {
         return next(new customError(`There is no ${Modal} with that ID ${req.params.id}`, 404))

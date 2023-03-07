@@ -15,9 +15,10 @@ const login = Joi.object({
 })
 //post schema
 const post = Joi.object({
-   averageRating: Joi.number().positive().integer().min(0).max(5).precision(1),
+   averageRating: Joi.number().positive().min(0).max(5).precision(1),
    title: Joi.string().min(10).max(256).required(),
-   content: Joi.string().min(10).max(256).required()
+   content: Joi.string().min(10).max(256).required(),
+   categories: Joi.array().items(Joi.string()).required()
 })
 //category schema
 const category = Joi.object({
